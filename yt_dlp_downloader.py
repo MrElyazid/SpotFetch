@@ -71,7 +71,7 @@ def download_and_embed_audio(output_path='.', metadata=None):
         }],
         'outtmpl': temp_audio_file_path_template,
         'noplaylist': True,
-        'quiet': False,  # Suppress yt-dlp's output
+        'quiet': False,
     }
 
     # audio download

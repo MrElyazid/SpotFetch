@@ -10,4 +10,33 @@ A very simple python script to download spotify playlists using yt-dlp after exp
 
 # Installation :
 
+### ffmpeg :
 
+- First make sure you have ffmpeg installed on your machine [Dowbload here](https://ffmpeg.org/download.html).
+
+### setup :
+
+- Clone this repository :
+
+```bash
+git clone https://github.com/MrElyazid/SpotFetch.git
+```
+
+- then :
+
+```bash
+cd SpotFetch
+```
+
+- Install `requirements.txt` ( preferably use a new virtual environement ):
+
+```bash
+pip install -r requirements.txt
+```
+
+- Thats it, now run `main.py` :
+
+```bash
+python3 main.py
+# or python main.py
+```

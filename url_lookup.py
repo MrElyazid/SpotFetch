@@ -9,7 +9,7 @@ def get_song_url(song_dict: dict) -> str | None:
         song_dict (dict): A dictionary containing 'track_name' and 'artist_names' (list).
 
     Returns:
-        str | None: The URL of the best matching YouTube video, or None if no results are found or an error occurs.
+        str | None: The URL of the best matching YouTube video, or None if an error occurs.
     """
     if 'artist_names' not in song_dict or 'track_name' not in song_dict:
         print("Error: song_dict must contain 'track_name' and 'artist_names'.")
@@ -40,7 +40,7 @@ def get_song_url(song_dict: dict) -> str | None:
                 return video_url
             else:
                 print(f"No results found for the query: {search_query}, using default URL.")
-                return 'https://music.youtube.com/watch?v=lYBUbBu4W08&si=QVvMflpkWojLjsKK'
+                return 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         except yt_dlp.DownloadError as e:
             print(f"An error occurred with yt-dlp: {e}")
             return None
