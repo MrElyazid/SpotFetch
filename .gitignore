@@ -1,0 +1,5 @@
+SpotFetchEnv/
+test.py
+__pycache__/
+.vscode/
+*.pyc
