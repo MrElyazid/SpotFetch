@@ -305,6 +305,4 @@ def download_spotify_song(output_path='.', metadata=None, cookie_file=None):
         if os.path.exists(downloaded_file_path):
             os.rename(downloaded_file_path, final_audio_file_path)
             
-if __name__ == "__main__":
-    query = "Wind of change by scorpions"
-    download_youtube_audio("https://www.youtube.com/watch?v=Gpwt7R9pGuo")
+
