@@ -1,5 +1,3 @@
-
-
 import functions
 
 
@@ -13,18 +11,25 @@ art = r"""
        |_|                                     
                                                                                             
 """
-   
-print(art)
+
+
 print("Welcome to SpotFetch! \n")
 print("visit https://exportify.app/ to export your Spotify playlist as a CSV file. \n")
-print("choose an option from the menu (1-3) \n")
-
-
+print("If YouTube asks for login bypass it using a cookies file, read : https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp \n")
+print("choose an option from the menu (1-5) \n")
+ 
+cookie_path = None
 while True:
-    print("1. Download Spotify playlist using csv file.\n")
-    print("2. Download song or playlist using YouTube URL.\n")
-    print("3. Search then Download a song from YouTube.\n")
-    print("4. Exit the program.\n")
+    
+    cookie_option = f"(already using the file at {cookie_path})" if cookie_path else ""
+
+
+    print(art)
+    print("\n1. Download Spotify playlist using csv file.")
+    print("2. Download song or playlist using YouTube URL.")
+    print("3. Search then Download a song from YouTube.")
+    print(f"4. Use a cookies file for other operations. {cookie_option}")
+    print("5. Exit the program.\n")
 
     choice = int(input().strip())
 
@@ -43,18 +48,12 @@ while True:
 
             for i in range(n):
                     print(f"Downloading Song {i+1}/{n} ... \n")
-                    functions.download_spotify_song(output_path=output_path, metadata=songs_list[i])
+                    functions.download_spotify_song(output_path=output_path, metadata=songs_list[i], cookie_file=cookie_path)
 
             print("All songs processed successfully. \n")
-            print("Go back to menu ? (y/n) (n to exit the program)\n")
-
-            ans = input().strip()
-
-            if ans == "y":
-                    continue
-            elif ans == "n":
-                    print("Bye Bye !!")
-                    break
+            print("Going back to menu ... ")
+            continue
+                   
         except Exception as e:
             print(f"Some error occured : {e}")
 
@@ -68,19 +67,14 @@ while True:
         output_path = input().strip()
 
         try:
-            functions.download_youtube_audio(url, output_path=output_path)
+            functions.download_youtube_audio(url, output_path=output_path, cookiefile=cookie_path)
         except Exception as e:
             print(f"The following error occured : {e}")
 
-        print("Go back to menu ? (y/n) (n to exit the program)\n")
+        print("Going back to menu ... \n")
+        continue
 
-        ans = input().strip()
 
-        if ans == "y":
-                    continue
-        elif ans == "n":
-                    print("Bye Bye !!")
-                    break
     elif choice == 3:
         print("Enter Search Query: \n")
         query = input().strip()
@@ -88,21 +82,29 @@ while True:
         url = functions.search_song(query)
         
         if url:
-            print(f"Proceed with the download ? (Y/n)\n")
+            print(f"Proceed with the download ? (y/n)\n")
             ans = input().strip()
 
             if ans == "y":
-                functions.download_youtube_audio(url)
+                output_path = input("Enter save location ( leave empty for current directory )\n")
+                functions.download_youtube_audio(url, output_path=output_path, cookiefile=cookie_path)
             elif ans == "n":
                 print("Aborting ... \n")
                 print("Going back to menu..")
                 continue
 
     elif choice == 4:
+        print("Enter the path to cookie.txt \n")
+        cookie_path = input().strip()
+        print(f"cookies file at {cookie_path} will be used for other options, going back to menu...\n")
+        continue
+
+    elif choice == 5:
+        print("Bye Bye!")
         break
 
     else:
-        print("Please enter a valid choice (1-4)")
+        print("Please enter a valid choice (1-5)")
 
 
 

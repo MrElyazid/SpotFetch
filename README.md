@@ -1,18 +1,25 @@
 
 # SpotFetch :
 
-A very simple python script to download spotify playlists using yt-dlp after exporting the playlist as a CSV file from [Exportify](https://exportify.app/).
+
+![SpotFetch Demo](./.github/demo.png)
+
+
+A very simple python script to download spotify playlists using yt-dlp after exporting the playlist as a CSV file from [Exportify](https://exportify.app/), alongside some useful yt-dlp aliases to use instead of manual commands.
 
 - Simply get the CSV and start downloading
 - No rate limiting since we dont use the spotify API
 - Album cover art and metdata are embedded to the mp3 files
 - Can resume downloads if stopped
+- Possibility to use a cookies.txt file in case YouTube asks for login.
+- Other useful yt-dlp tasks done quick : Search then download a song, download a song or a playlist using a URL.
+
 
 # Installation :
 
 ### ffmpeg :
 
-- First make sure you have ffmpeg installed on your machine [Dowbload here](https://ffmpeg.org/download.html).
+- First make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
 
 ### setup :
 
@@ -34,9 +41,9 @@ cd SpotFetch
 pip install -r requirements.txt
 ```
 
-- Thats it, now run `main.py` :
+- Thats it, now run `menu.py` :
 
 ```bash
-python3 main.py
-# or python main.py
+python3 menu.py
+# or python menu.py
 ```
