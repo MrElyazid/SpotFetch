@@ -1,9 +1,7 @@
 """The main file the user runs"""
 
-import input_handler
-import yt_dlp_downloader
 
-
+import functions
 
 def main():
    
@@ -26,7 +24,7 @@ def main():
     
     try:
         print(f"getting URLs for songs in {csv_file_path}, please wait...\n")
-        songs_list = input_handler.read_csv_file(csv_file_path)
+        songs_list = functions.read_csv_file(csv_file_path)
     except FileNotFoundError as e:
         print(f"The following error occurred: {e}, are you sure the file exists?")
         return
@@ -35,7 +33,7 @@ def main():
     n = len(songs_list)
     for song in songs_list:
         print(f"\nProcessing song number : {i}/{n}, {song['track_name']} by {', '.join(song['artist_names'])}\n")
-        yt_dlp_downloader.download_and_embed_audio(output_path=output_path, metadata=song)
+        functions.download_spotify_song(output_path=output_path, metadata=song)
         print(f"Finished processing song: {song['track_name']} by {', '.join(song['artist_names'])}\n\n")
         i += 1
         
