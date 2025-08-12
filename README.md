@@ -148,4 +148,4 @@ Thats it, after downloading try to locate where Termux stores files on your Andr
 
 
 ## Contributing :
-If you have any enhancement ideas for the program or encountered a bug, you can submit an issue or a PR, ill be happy to help!
+If you have any enhancement ideas for the program or encountered a bug ( i didnt test it thoroughly ), you can submit an issue or a PR, happy to help!
