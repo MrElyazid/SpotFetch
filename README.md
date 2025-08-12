@@ -1,6 +1,6 @@
 # SpotFetch :
 
-![SpotFetch Demo](./.github/demo.png)
+![SpotFetch Demo](./.github/showcase.png)
 
 
 A simple python program to download Music from various platfroms using yt-dlp ( The audio source is YouTube ).
