@@ -41,7 +41,7 @@ git clone https://github.com/MrElyazid/SpotFetch.git
 cd SpotFetch
 ```
 
-- Install `requirements.txt` ( preferably use a new virtual environement, helpful for updating yt-dlp later ):
+- Install `requirements.txt` ( preferably use a new virtual environement ):
 
 ```bash
 pip install -r requirements.txt
@@ -94,6 +94,12 @@ name,artist
 "under pressure","queen"
 "time","pink floyd"
 ```
+
+### I keep getting 403 Forbidden Error :
+
+If you get `ERROR: unable to download video data: HTTP Error 403: Forbidden` when trying to download, this is probably because yt-dlp needs to be updated, you can run `pip install -r requirements.txt --upgrade` to update it.
+
+Also if using a venv, make sure you activate it before each launch of the app.
 
 ## Using SpotFetch on Android :
 since SpotFetch is just a python program, you can run it on any machine with python installed, you can run it on Android via [Termux](https://f-droid.org/en/packages/com.termux/) ( you can also find Termux on Google play ), after installation follow these commands :
