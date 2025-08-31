@@ -3,8 +3,6 @@
 ![SpotFetch Demo](./.github/demo.png)
 
 
-
-
 A simple python program to download Music from various platfroms using yt-dlp ( The audio source is YouTube ).
 
 ## What it can do :
@@ -24,7 +22,7 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 ### Requirements :
 
 - First make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
-- Make sure you have [Python](https://www.python.org/downloads/) installed too, and is in you system path.
+- Make sure you have [Python](https://www.python.org/downloads/) installed too, and is in your system path.
 - If you dont have Git to clone the repo thats fine, you can download it as a zip file and uncompress it, see [here](.github/if_no_git.png).
 
 ### setup :
@@ -65,11 +63,17 @@ before running `pip install -r requirements.txt` make sure you [create](https://
 SpotFetch uses [Rich](https://github.com/Textualize/rich) for the Terminal UI, [Mutagen](https://github.com/quodlibet/mutagen) for metadata handling when downloading using Exportify, and at its core its just a wrapper for [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### why are only three audio formats supported ?
-I will incrementaly support formats that allow thumbnail embedding ( 'mp3', 'mkv', 'mka', 'ogg', 'opus', 'flac', 'm4a', 'mp4' ) and offer an option to download directly using yt-dlp's `bestaudio` format and fallback to m4a if the resulting format doesnt support thumbnail embedding ( F$!# WEBM !), when i tried this i had some issues especially with container formats like mp4, and also because if we want to embed Exportify metadata to these formats we need special handling for each one using mutagen, which is why i decided to stick with just :
+I will incrementally support formats that allow thumbnail embedding ( 'mp3', 'mkv', 'mka', 'ogg', 'opus', 'flac', 'm4a', 'mp4' ) and offer an option to download directly using yt-dlp's `bestaudio` format and fallback to m4a if the resulting format doesnt support thumbnail embedding ( F$!# WEBM !), when i tried this i had some issues especially with container formats like mp4, and also because if we want to embed Exportify metadata to these formats we need special handling for each one using mutagen, which is why i decided to stick with just :
 
 - MP3 : most compatible.
 - M4A : a mix between quality and compression.
 - FLAC : because its lossless.
+
+### How does the program sets the best quality and bitrate ? :
+
+First off, YouTube uses adaptive streaming, the best available quality for a video can change depending on variables like the server load, location ... etc, to get the best available quality at the time of the request, the argument `bestaudio` for yt-dlp ensures we get the best quality available at the time of the download, and then comes the transcoding, when converting from the `bestaudio` format ( which is often opus or vorbis in WebM containers ) to `mp3` or `m4a` the argument `prefferedqyality: '0'` is used, this ensures we dont produce a bloated transcode and perform VBR encoding instead of just setting the maximum bitrate which will just result in a large file size for the audio, note that for `flac` this last argument is ignored since the format is lossless.
+
+in short : **the best quality possible is always chosen.**
 
 ### how to use a cookie file ?:
 
@@ -148,4 +152,4 @@ Thats it, after downloading try to locate where Termux stores files on your Andr
 
 
 ## Contributing :
-If you have any enhancement ideas for the program or encountered a bug, you can submit an issue or a PR, ill be happy to help!
+If you have any enhancement ideas for the program or encountered a bug ( i didnt test it extensively ), you can submit an issue or a PR, happy to help!

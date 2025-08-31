@@ -50,7 +50,7 @@ def download_from_url(url, format: typing.Literal["mp3", "m4a", "flac"], output_
 def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], output_path=".", cookiefile=None):
         
 
-    search_query = f"{song['track_name']} by {song['artist_name']} Music Video"
+    search_query = f"{song['track_name']} by {song['artist_name']}"
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
@@ -246,9 +246,9 @@ def embed_spotify_metadata_mutagen(audiofile, image_file_path, metadata, format:
             if metadata.get('album_release_date'):
                 audio.tags['\xa9day'] = [metadata['album_release_date']]
             if metadata.get('track_number'):
-                audio.tags['trkn'] = [(metadata['track_number'], 0)]
+                audio.tags['trkn'] = [(int(metadata['track_number']), 0)]
             if metadata.get('disc_number'):
-                audio.tags['disk'] = [(metadata['disc_number'], 0)]
+                audio.tags['disk'] = [(int(metadata['disc_number']), 0)]
             
             audio.save()
 
@@ -328,7 +328,7 @@ def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata
     else:
         image_file_path = None
 
-    search_query = f"{track_name} by {artist_names} Music Video"
+    search_query = f"{track_name} by {artist_names}"
     
     temp_filename = f"{track_name} - {artist_names_str}"
 
