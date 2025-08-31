@@ -69,7 +69,7 @@ I will incrementally support formats that allow thumbnail embedding ( 'mp3', 'mk
 - M4A : a mix between quality and compression.
 - FLAC : because its lossless.
 
-### How does the program sets the best quality and bitrate ? :
+### How does the program set the best quality and bitrate ?
 
 First off, YouTube uses adaptive streaming, the best available quality for a video can change depending on variables like the server load, location ... etc, to get the best available quality at the time of the request, the argument `bestaudio` for yt-dlp ensures we get the best quality available at the time of the download, and then comes the transcoding, when converting from the `bestaudio` format ( which is often opus or vorbis in WebM containers ) to `mp3` or `m4a` the argument `prefferedqyality: '0'` is used, this ensures we dont produce a bloated transcode and perform VBR encoding instead of just setting the maximum bitrate which will just result in a large file size for the audio, note that for `flac` this last argument is ignored since the format is lossless.
 
