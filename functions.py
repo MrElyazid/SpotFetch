@@ -47,15 +47,20 @@ def download_from_url(url, format: typing.Literal["mp3", "m4a", "flac"], output_
         ydl.download([url])
 
 
-def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], output_path=".", cookiefile=None):
+def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], output_path=".", cookiefile=None, platform="youtube"):
         
 
     search_query = f"{song['track_name']} by {song['artist_name']}"
+    
+    if platform == "ytmusic":
+        search_input = f"https://music.youtube.com/search?q={search_query.replace(' ', '+')}"
+    else:
+        search_input = f"ytsearch1:{search_query}"
+    
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
         'writethumbnail': True,
-        'default_search': 'ytsearch1',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': format,
@@ -72,6 +77,7 @@ def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], outp
             'already_have_thumbnail': False,
         },         ],
         'embedthumbnail': True,
+        'playlist_items': '1', # important for ytmusic
         'addmetadata': True,
         'verbose': False,
         'quiet': True,
@@ -80,7 +86,7 @@ def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], outp
         'cookiefile': cookiefile
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([search_query])
+        ydl.download([search_input])
 
 
 
@@ -111,7 +117,7 @@ def read_tunemymusic_csv_file(file_path: str) -> list:
 
     return songs_list
 
-def read_download_custom_csv(file_path: str, format: typing.Literal["mp3", "m4a", "flac"], output_path=".", cookiefile=None) -> None:
+def read_download_custom_csv(file_path: str, format: typing.Literal["mp3", "m4a", "flac"], output_path=".", cookiefile=None, platform="youtube") -> None:
     
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"the file {file_path} doesnt exist.")
@@ -127,7 +133,7 @@ def read_download_custom_csv(file_path: str, format: typing.Literal["mp3", "m4a"
 
             del song['name'], song['artist']
             print(f"{i}/{n} - Downloading {song['track_name']} by {song['artist_name']}")
-            download_from_query(song, format, output_path, cookiefile)
+            download_from_query(song, format, output_path, cookiefile, platform)
         except Exception as e:
             print(f"some error happened: {e}, skipping song ...")
             continue
@@ -294,7 +300,7 @@ def embed_spotify_metadata_mutagen(audiofile, image_file_path, metadata, format:
         print(f"An error occurred during metadata embedding for track {track_name}: {e}")
 
         
-def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata, output_path='.', cookiefile=None):
+def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata, output_path='.', cookiefile=None, platform="youtube"):
     if metadata is None:
         print("no song metadata, skipping song...")
         return
@@ -330,18 +336,24 @@ def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata
 
     search_query = f"{track_name} by {artist_names}"
     
+    if platform == "ytmusic":
+        search_input = f"https://music.youtube.com/search?q={search_query.replace(' ', '+')}"
+    else:
+        search_input = f"ytsearch1:{search_query}"
+    
     temp_filename = f"{track_name} - {artist_names_str}"
-
+ 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_path, f'{temp_filename}.%(ext)s'),
-        'default_search': 'ytsearch1',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': format,
             'preferredquality': '0',
         }],
         'verbose': False,
+        'playlist_items': '1',
+        'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
@@ -351,7 +363,7 @@ def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata
     # audio download
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([search_query])
+            ydl.download([search_input])
 
         downloaded_file_path = os.path.join(output_path, f"{temp_filename}.{format}")
         

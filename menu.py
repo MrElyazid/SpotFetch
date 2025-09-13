@@ -17,7 +17,8 @@ console = Console()
 settings = {
     'format': 'mp3',
     'output_path': '.',
-    'cookie_file': None
+    'cookie_file': None,
+    'platform': 'ytmusic'
 }
 
 art = r"""
@@ -49,7 +50,8 @@ def show_current_settings():
         ("Current Settings:\n\n", "bold yellow"),
         ("Audio Format: ", "white"), (settings['format'].upper(), "cyan"), ("\n"),
         ("Output Directory: ", "white"), (settings['output_path'], "cyan"), ("\n"),
-        ("Cookie File: ", "white"), (settings['cookie_file'] or "None", "cyan")
+        ("Cookie File: ", "white"), (settings['cookie_file'] or "None", "cyan"), ("\n"),
+        ("Download Platform: ", "white"), (f"{'YouTube Music' if settings['platform'] == 'ytmusic' else 'YouTube'}", "cyan")
     )
     
     panel = Panel(
@@ -72,8 +74,9 @@ def configure_settings():
         ("1", "Set Audio Format", f"Currently: {settings['format'].upper()}"),
         ("2", "Set Output Directory", f"Currently: {settings['output_path']}"),
         ("3", "Set Cookie File", f"Currently: {settings['cookie_file'] or 'None'}"),
-        ("4", "Reset to Defaults", "Reset all settings"),
-        ("5", "Back to Main Menu", "Return to main menu")
+        ("4", "Set Download Platform", f"Currently: {settings['platform'].title()}"),
+        ("5", "Reset to Defaults", "Reset all settings"),
+        ("6", "Back to Main Menu", "Return to main menu")
     ]
     
     table = Table(title="Settings Menu", box=box.ROUNDED, title_style="bold cyan")
@@ -89,8 +92,8 @@ def configure_settings():
     
     choice = Prompt.ask(
         "Select setting to configure",
-        choices=["1", "2", "3", "4", "5"],
-        default="5"
+        choices=["1", "2", "3", "4", "5", "6"],
+        default="6"
     )
     
     if choice == "1":
@@ -100,11 +103,13 @@ def configure_settings():
     elif choice == "3":
         set_cookie_file()
     elif choice == "4":
-        reset_settings()
+        set_download_platform()
     elif choice == "5":
+        reset_settings()
+    elif choice == "6":
         return
     
-    if choice != "5":
+    if choice != "6":
         console.print()
         show_current_settings()
         if Confirm.ask("\nConfigure another setting?", default=False):
@@ -167,12 +172,35 @@ def set_cookie_file():
         settings['cookie_file'] = None
         console.print("Cookie file disabled", style="yellow")
 
+def set_download_platform():
+    """Set the download platform"""
+    console.print(Panel("Set Download Platform", style="bold yellow"))
+    console.print(Text("Youtube works best for niche and lesser known songs and artists\nYoutube music works best for popular songs and if you dont want to download video clips audio", style="italic white"))
+    
+    platforms = ["ytmusic", "youtube"]
+    
+    table = Table(box=box.SIMPLE)
+    table.add_column("Option", style="cyan", justify="center")
+    table.add_column("Platform", style="green")
+    table.add_column("Description", style="white")
+    
+    table.add_row("1", "YouTube Music", "Best for popular songs, avoids video clips (default)")
+    table.add_row("2", "YouTube", "Best for niche/lesser known songs and artists")
+    
+    console.print(table)
+    
+    choice = Prompt.ask("Choose platform", choices=["1", "2"], default="1")
+    settings['platform'] = platforms[int(choice) - 1]
+    console.print(f"Download platform set to: {settings['platform'].title()}", style="green")
+
+
 def reset_settings():
     """Reset all settings to defaults"""
     console.print(Panel("Reset Settings", style="bold yellow"))
     settings['format'] = 'mp3'
     settings['output_path'] = '.'
     settings['cookie_file'] = None
+    settings['platform'] = 'ytmusic'
     console.print("All settings reset to defaults", style="green")
 
 
@@ -213,7 +241,7 @@ def download_from_search():
     
     console.print("Searching and downloading...", style="yellow")
     try:
-        functions.download_from_query(song, settings['format'], settings['output_path'], settings['cookie_file'])
+        functions.download_from_query(song, settings['format'], settings['output_path'], settings['cookie_file'], settings['platform'])
         console.print("Successfully downloaded!", style="green bold")
     except Exception as e:
         console.print(f"Error: {e}", style="red")
@@ -262,7 +290,7 @@ def download_from_custom_csv():
     
     console.print("Processing CSV file...", style="yellow")
     try:
-        functions.read_download_custom_csv(file_path, settings['format'], settings['output_path'], settings['cookie_file'])
+        functions.read_download_custom_csv(file_path, settings['format'], settings['output_path'], settings['cookie_file'], settings['platform'])
         console.print("Successfully processed CSV file!", style="green bold")
     except Exception as e:
         console.print(f"Error: {e}", style="red")
@@ -290,7 +318,7 @@ def process_tunemymusic_csv():
         console.print("Processing songs...", style="yellow")
         
         if songs:
-            download_songs_from_list(songs)
+            download_songs_from_list(songs, settings['platform'])
         else:
             console.print("No songs found in the CSV file", style="yellow")
         
@@ -320,7 +348,7 @@ def process_exportify_csv():
         console.print("Processing songs...", style="yellow")
         
         if songs:
-            download_spotify_songs_from_list(songs)
+            download_spotify_songs_from_list(songs, settings['platform'])
         else:
             console.print("No songs found in the CSV file", style="yellow")
         
@@ -329,7 +357,7 @@ def process_exportify_csv():
     
     Prompt.ask("\nPress Enter to continue...")
 
-def download_songs_from_list(songs):
+def download_songs_from_list(songs, platform):
     """Download songs from a list using search queries"""
     
     total_songs = len(songs)
@@ -341,7 +369,7 @@ def download_songs_from_list(songs):
             artist_name = song.get('artist_name', 'Unknown')
             console.print(f"[{i+1}/{total_songs}] Downloading: {track_name} by {artist_name}", style="cyan")
             
-            functions.download_from_query(song, settings['format'], settings['output_path'], settings['cookie_file'])
+            functions.download_from_query(song, settings['format'], settings['output_path'], settings['cookie_file'], platform)
             console.print(f"✓ Successfully downloaded: {track_name}", style="green")
             
         except Exception as e:
@@ -350,7 +378,7 @@ def download_songs_from_list(songs):
     
     console.print("All downloads complete!", style="green bold")
 
-def download_spotify_songs_from_list(songs):
+def download_spotify_songs_from_list(songs, platform):
     """Download Spotify songs with full metadata"""
     
     total_songs = len(songs)
@@ -362,7 +390,7 @@ def download_spotify_songs_from_list(songs):
             artists = ', '.join(song.get('artist_names', ['Unknown']))
             console.print(f"[{i+1}/{total_songs}] Downloading: {track_name} by {artists}", style="cyan")
             
-            functions.download_spotify_song(settings['format'], song, settings['output_path'], settings['cookie_file'])
+            functions.download_spotify_song(settings['format'], song, settings['output_path'], settings['cookie_file'], platform)
             console.print(f"✓ Successfully downloaded: {track_name}", style="green")
             
         except Exception as e:

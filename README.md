@@ -81,7 +81,14 @@ Use the following extensions to get cookies for YouTube depending on your browse
 
 You can read more about using cookies with yt-dlp [here](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
 
-### How should the urls .txt file look like ?
+### Download Platform Selection
+
+SpotFetch allows you to choose between YouTube and YouTube Music for query-based downloads (e.g., search, CSV imports). This affects how search queries are handled:
+
+- **YouTube Music** (default): Works best for popular songs and if you don't want to download video clip audio.
+- **YouTube**: Works best for niche and lesser-known songs and artists.
+
+Configure this in the Settings menu (option 4). Direct URL downloads (e.g., from .txt files) always use YouTube.
 
 simply put each link in a line with no quotes, example :
 ```bash
