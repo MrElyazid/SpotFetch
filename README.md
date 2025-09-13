@@ -3,7 +3,7 @@
 ![SpotFetch Demo](./.github/demo.png)
 
 
-A simple python program to download Music from various platfroms using yt-dlp ( The audio source is YouTube ).
+A simple python program to download Music from various platfroms using yt-dlp ( The audio source is YouTube or YouTube Music depending on choice ).
 
 ## What it can do :
 
@@ -16,7 +16,7 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 - Audio is downloaded as either MP3, M4A, or FLAC.
 - Song cover or thumbnail are always embedded, alongside numerous metadata.
 - You can use a cookie file in case YouTube rate limits your session.
-
+- You can download using either YouTube music or Youtube.
 # Installation :
 
 ### Requirements :
@@ -63,7 +63,7 @@ before running `pip install -r requirements.txt` make sure you [create](https://
 SpotFetch uses [Rich](https://github.com/Textualize/rich) for the Terminal UI, [Mutagen](https://github.com/quodlibet/mutagen) for metadata handling when downloading using Exportify, and at its core its just a wrapper for [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### why are only three audio formats supported ?
-I will incrementally support formats that allow thumbnail embedding ( 'mp3', 'mkv', 'mka', 'ogg', 'opus', 'flac', 'm4a', 'mp4' ) and offer an option to download directly using yt-dlp's `bestaudio` format and fallback to m4a if the resulting format doesnt support thumbnail embedding ( F$!# WEBM !), when i tried this i had some issues especially with container formats like mp4, and also because if we want to embed Exportify metadata to these formats we need special handling for each one using mutagen, which is why i decided to stick with just :
+I will incrementally support formats that allow thumbnail embedding ( 'mp3', 'mkv', 'mka', 'ogg', 'opus', 'flac', 'm4a', 'mp4' ) and offer an option to download directly using yt-dlp's `bestaudio` format and fallback to m4a if the resulting format doesnt support thumbnail embedding ( F$ck WEBM !), when i tried this i had some issues especially with container formats like mp4, and also because if we want to embed Exportify metadata to these formats we need special handling for each one using mutagen, which is why i decided to stick with just :
 
 - MP3 : most compatible.
 - M4A : a mix between quality and compression.
@@ -83,18 +83,20 @@ You can read more about using cookies with yt-dlp [here](https://github.com/yt-d
 
 ### Download Platform Selection
 
-SpotFetch allows you to choose between YouTube and YouTube Music for query-based downloads (e.g., search, CSV imports). This affects how search queries are handled:
+You can choose between YouTube and YouTube Music for query-based downloads (e.g., search, CSV imports).
 
 - **YouTube Music** (default): Works best for popular songs and if you don't want to download video clip audio.
 - **YouTube**: Works best for niche and lesser-known songs and artists.
 
-Configure this in the Settings menu (option 4). Direct URL downloads (e.g., from .txt files) always use YouTube.
+Configure this in the Settings menu (option 4).
+
+### How should the urls txt file look like ?
 
 simply put each link in a line with no quotes, example :
 ```bash
 https://youtu.be/dQw4w9WgXcQ?si=zQ_s7NhWcPgEQ46b
 https://youtu.be/6-8E4Nirh9s?si=e7LKPptaE6vEEI48
-https://youtu.be/D7ab595h0AU?si=vjr5nI0jYlFfs7H3
+https://music.youtube.com/watch?v=k-3y2LVF_SE&si=G2Dtl4LUbzjGIcpy
 ```
 
 ### How should the custom CSV file look like ?
