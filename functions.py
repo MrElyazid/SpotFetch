@@ -34,7 +34,6 @@ def download_from_url(url, format: typing.Literal["mp3", "m4a", "flac"], output_
             'key': 'EmbedThumbnail',
             'already_have_thumbnail': False,
         },         ],
-        "extractor_args": {"youtube":{"player_client":["default","-tv_simply"]}},
         'embedthumbnail': True,
         'addmetadata': True,
         'verbose': False,
@@ -77,7 +76,6 @@ def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], outp
             'key': 'EmbedThumbnail',
             'already_have_thumbnail': False,
         },         ],
-        "extractor_args": {"youtube":{"player_client":["default","-tv_simply"]}},
         'embedthumbnail': True,
         'playlist_items': '1', # important for ytmusic
         'addmetadata': True,
@@ -353,7 +351,6 @@ def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata
             'preferredcodec': format,
             'preferredquality': '0',
         }],
-        "extractor_args": {"youtube":{"player_client":["default","-tv_simply"]}},
         'verbose': False,
         'playlist_items': '1',
         'noplaylist': True,
