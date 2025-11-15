@@ -391,10 +391,16 @@ def download_spotify_songs_from_list(songs, platform):
             console.print(f"[{i+1}/{total_songs}] Downloading: {track_name} by {artists}", style="cyan")
             
             functions.download_spotify_song(settings['format'], song, settings['output_path'], settings['cookie_file'], platform)
-            console.print(f"✓ Successfully downloaded: {track_name}", style="green")
+            try:
+                console.print(f"✓ Successfully downloaded: {track_name}", style="green")
+            except UnicodeEncodeError:
+                console.print(f"Successfully downloaded: {track_name}", style="green")
             
         except Exception as e:
-            console.print(f"✗ Failed to download {track_name}: {e}", style="red")
+            try:
+                console.print(f"✗ Failed to download {track_name}: {e}", style="red")
+            except UnicodeEncodeError:
+                console.print(f"Failed to download {track_name}: {e}", style="red")
             continue
     
     console.print("All Spotify downloads complete!", style="green bold")
