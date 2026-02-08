@@ -39,7 +39,7 @@ def download_from_url(url, format: typing.Literal["mp3", "m4a", "flac"], output_
         'verbose': False,
         'quiet': True,
         'no_warnings': True,
-        'ignoreerrors': True,
+        'ignoreerrors': False,
         'cookiefile': cookiefile,
        
     }
@@ -82,7 +82,7 @@ def download_from_query(song, format: typing.Literal["mp3", "m4a", "flac"], outp
         'verbose': False,
         'quiet': True,
         'no_warnings': True,
-        'ignoreerrors': True,
+        'ignoreerrors': False,
         'cookiefile': cookiefile
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -356,7 +356,7 @@ def download_spotify_song(format: typing.Literal["mp3", "flac", "m4a"], metadata
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
-        'ignoreerrors': True,
+        'ignoreerrors': False,
         'cookiefile': cookiefile,
     }
 

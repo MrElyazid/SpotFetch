@@ -76,7 +76,7 @@ in short : **the best quality possible is always chosen.**
 Use the following extensions to get cookies for YouTube depending on your browser : [Chrome](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1), [Firefox](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/).
 
 You can read more about using cookies with yt-dlp [here](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
-
+Note that you need to have a javascript runtime installed for the cookies to work, [deno](https://deno.com/) is recommended, read more here : https://github.com/yt-dlp/yt-dlp/wiki/EJS 
 ### Download Platform Selection
 
 - **YouTube Music** (default): Works best for popular songs and if you don't want to download video clip audio.

@@ -8,4 +8,4 @@ Pygments==2.19.2
 requests==2.32.4
 rich==14.1.0
 urllib3==2.5.0
-yt-dlp
+yt-dlp[default]
