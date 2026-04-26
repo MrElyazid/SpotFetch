@@ -3,3 +3,4 @@ test.py
 __pycache__/
 .vscode/
 *.pyc
+cli_to_code.py
