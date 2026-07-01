@@ -4,3 +4,7 @@ __pycache__/
 .vscode/
 *.pyc
 cli_to_code.py
+dist/
+build/
+*.spec
+*.egg-info/
