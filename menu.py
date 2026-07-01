@@ -3,6 +3,8 @@
 import functions
 import os
 import sys
+import spotify_auth
+import spotify_api
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -18,7 +20,8 @@ settings = {
     "output_path": ".",
     "cookie_file": None,
     "platform": "ytmusic",
-    "tolerance": 2
+    "tolerance": 2,
+    "spotify_client_id": os.environ.get("SPOTIFY_CLIENT_ID"),
 }
 
 art = r"""
@@ -67,6 +70,12 @@ def show_current_settings():
         ("\n"),
         ("Duration Tolerance: ", "white"),
         (f"{settings['tolerance']}min", "cyan"),
+        ("\n"),
+        ("Spotify API: ", "white"),
+        (
+            f"{'Configured' if settings['spotify_client_id'] else 'Not configured (set in Settings)'}",
+            "cyan",
+        ),
     )
 
     panel = Panel(
@@ -96,8 +105,13 @@ def configure_settings():
             "Set duration tolerance",
             f"Currently tolerance={settings['tolerance']}min",
         ),
-        ("6", "Reset to Defaults", "Reset all settings"),
-        ("7", "Back to Main Menu", "Return to main menu"),
+        (
+            "6",
+            "Configure Spotify API",
+            f"Client ID: {settings['spotify_client_id'] or 'Not set'}",
+        ),
+        ("7", "Reset to Defaults", "Reset all settings"),
+        ("8", "Back to Main Menu", "Return to main menu"),
     ]
 
     table = Table(title="Settings Menu", box=box.ROUNDED, title_style="bold cyan")
@@ -113,8 +127,8 @@ def configure_settings():
 
     choice = Prompt.ask(
         "Select setting to configure",
-        choices=["1", "2", "3", "4", "5", "6", "7"],
-        default="7",
+        choices=["1", "2", "3", "4", "5", "6", "7", "8"],
+        default="8",
     )
 
     if choice == "1":
@@ -128,11 +142,13 @@ def configure_settings():
     elif choice == "5":
         set_duration_tolerance()
     elif choice == "6":
-        reset_settings()
+        configure_spotify_settings()
     elif choice == "7":
+        reset_settings()
+    elif choice == "8":
         return
 
-    if choice != "7":
+    if choice != "8":
         console.print()
         show_current_settings()
         if Confirm.ask("\nConfigure another setting?", default=False):
@@ -141,11 +157,11 @@ def configure_settings():
 
 
 def set_duration_tolerance():
-    """Set the duration tolerance when downloading using exportify"""
-    console.print(Panel("Set Download Platform", style="bold yellow"))
+    """Set the duration tolerance for song matching"""
+    console.print(Panel("Set Duration Tolerance", style="bold yellow"))
 
     console.print(
-        "This duration is used to detect wrong song matches when searching youtube for the song in the exportify csv\n"
+        "This duration is used to detect wrong song matches when searching youtube for a song\n"
         "Set it to something like 1 (tight checking) or 3 (good to ignore long unwanted songs) in minutes"
     )
 
@@ -496,6 +512,278 @@ def download_spotify_songs_from_list(songs, platform):
     )
 
 
+def get_spotify_access_token():
+    """Get a valid Spotify access token. Returns None if not configured."""
+    client_id = settings.get("spotify_client_id") or os.environ.get("SPOTIFY_CLIENT_ID") or spotify_auth.DEFAULT_CLIENT_ID
+    if not client_id:
+        console.print("[yellow]Spotify Client ID is not configured.[/yellow]")
+        console.print("Set the SPOTIFY_CLIENT_ID environment variable, or configure it in Settings.")
+        return None
+
+    auth = spotify_auth.SpotifyAuth(client_id)
+    if auth.is_authenticated():
+        token = auth.get_access_token()
+        if token:
+            return token
+        console.print("[yellow]Spotify session expired. Re-authenticating...[/yellow]")
+
+    try:
+        token = auth.authenticate()
+        return token
+    except spotify_auth.SpotifyAuthError as e:
+        console.print(f"[red]{e}[/red]")
+        return None
+
+
+def process_spotify_playlist():
+    """Download tracks from a Spotify playlist URL."""
+    console.clear()
+    show_banner()
+    show_current_settings()
+
+    console.print(Panel("Download Spotify Playlist", style="bold blue"))
+    console.print(
+        "Paste a Spotify playlist URL, e.g.:\n"
+        "  https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        style="italic white",
+    )
+
+    url = Prompt.ask("Enter playlist URL").strip()
+    if not url:
+        return
+
+    try:
+        playlist_id = spotify_api.extract_playlist_id(url)
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    token = get_spotify_access_token()
+    if not token:
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    console.print("Fetching playlist info...", style="yellow")
+    try:
+        playlist_name = spotify_api.fetch_playlist_name(playlist_id, token)
+        console.print(f"Playlist: [cyan]{playlist_name}[/cyan]")
+    except Exception:
+        playlist_name = "Playlist"
+
+    console.print("Fetching tracks...", style="yellow")
+    try:
+        raw_tracks = spotify_api.fetch_playlist_tracks(playlist_id, token)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch tracks: {e}[/red]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    if not raw_tracks:
+        console.print("[yellow]No tracks found in this playlist.[/yellow]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    songs = [spotify_api.track_to_metadata(t) for t in raw_tracks]
+    console.print(f"Found [cyan]{len(songs)}[/cyan] tracks. Starting download...\n")
+
+    download_spotify_songs_from_list(songs, settings["platform"])
+    Prompt.ask("\nPress Enter to continue...")
+
+
+def process_spotify_liked_songs():
+    """Download the user's Liked Songs from Spotify."""
+    console.clear()
+    show_banner()
+    show_current_settings()
+
+    console.print(Panel("Download Liked Songs", style="bold blue"))
+    console.print("This will download all your saved/liked songs from Spotify.", style="italic white")
+
+    if not Confirm.ask("Continue?"):
+        return
+
+    token = get_spotify_access_token()
+    if not token:
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    console.print("Fetching your Liked Songs...", style="yellow")
+    try:
+        raw_tracks = spotify_api.fetch_liked_songs(token)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch liked songs: {e}[/red]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    if not raw_tracks:
+        console.print("[yellow]No liked songs found.[/yellow]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    songs = [spotify_api.track_to_metadata(t) for t in raw_tracks]
+    console.print(f"Found [cyan]{len(songs)}[/cyan] liked songs. Starting download...\n")
+
+    download_spotify_songs_from_list(songs, settings["platform"])
+    Prompt.ask("\nPress Enter to continue...")
+
+
+def process_spotify_list_playlists():
+    """List user's playlists and let them pick one to download."""
+    token = get_spotify_access_token()
+    if not token:
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    console.print("Fetching your playlists...", style="yellow")
+    try:
+        playlists = spotify_api.fetch_user_playlists(token)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch playlists: {e}[/red]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    if not playlists:
+        console.print("[yellow]No playlists found on your account.[/yellow]")
+        Prompt.ask("\nPress Enter to continue...")
+        return
+
+    while True:
+        console.clear()
+        show_banner()
+        console.print(Panel("Your Spotify Playlists", style="bold green"))
+
+        table = Table(box=box.ROUNDED)
+        table.add_column("#", style="cyan", justify="right", width=4)
+        table.add_column("Playlist", style="yellow")
+        table.add_column("Tracks", style="white", justify="right")
+        table.add_column("Visibility", style="white")
+
+        for i, pl in enumerate(playlists, 1):
+            vis = "Public" if pl['public'] else "Private"
+            table.add_row(str(i), pl['name'], str(pl['tracks_total']), vis)
+
+        console.print(table)
+        console.print()
+
+        choice = Prompt.ask(
+            "Enter number to download, or 0 to go back",
+            default="0",
+        )
+
+        try:
+            idx = int(choice)
+        except ValueError:
+            continue
+
+        if idx == 0:
+            return
+
+        if 1 <= idx <= len(playlists):
+            selected = playlists[idx - 1]
+            console.print(f"\nSelected: [cyan]{selected['name']}[/cyan]")
+            console.print("Fetching tracks...", style="yellow")
+
+            try:
+                raw_tracks = spotify_api.fetch_playlist_tracks(selected['id'], token)
+            except Exception as e:
+                console.print(f"[red]Failed to fetch tracks: {e}[/red]")
+                Prompt.ask("\nPress Enter to continue...")
+                return
+
+            if not raw_tracks:
+                console.print("[yellow]No tracks found.[/yellow]")
+                Prompt.ask("\nPress Enter to continue...")
+                return
+
+            songs = [spotify_api.track_to_metadata(t) for t in raw_tracks]
+            console.print(f"Found [cyan]{len(songs)}[/cyan] tracks. Starting download...\n")
+            download_spotify_songs_from_list(songs, settings["platform"])
+            Prompt.ask("\nPress Enter to continue...")
+            return
+
+
+def spotify_submenu():
+    """Spotify API operations submenu."""
+    while True:
+        console.clear()
+        show_banner()
+        show_current_settings()
+
+        console.print(Panel("Spotify Download Options", style="bold green"))
+
+        table = Table(title="Spotify Menu", box=box.ROUNDED, title_style="bold cyan")
+        table.add_column("Option", style="cyan", justify="center", width=8)
+        table.add_column("Action", style="yellow", width=25)
+        table.add_column("Description", style="white")
+
+        options = [
+            ("1", "List My Playlists", "Choose from your saved playlists"),
+            ("2", "Download Liked Songs", "Download all your saved/liked songs"),
+            ("3", "Download a Playlist", "Paste a Spotify playlist URL"),
+            ("4", "Log Out of Spotify", "Clear stored authentication tokens"),
+            ("5", "Back to Main Menu", "Return to the main menu"),
+        ]
+
+        for opt, action, desc in options:
+            table.add_row(opt, action, desc)
+
+        console.print(table)
+        console.print()
+
+        choice = Prompt.ask(
+            "Select an option", choices=["1", "2", "3", "4", "5"], default="1"
+        )
+
+        if choice == "1":
+            process_spotify_list_playlists()
+        elif choice == "2":
+            process_spotify_liked_songs()
+        elif choice == "3":
+            process_spotify_playlist()
+        elif choice == "4":
+            client_id = settings.get("spotify_client_id") or os.environ.get("SPOTIFY_CLIENT_ID")
+            if client_id:
+                auth = spotify_auth.SpotifyAuth(client_id)
+                auth.clear_tokens()
+                console.print("[green]Logged out of Spotify.[/green]")
+            else:
+                console.print("[yellow]No Spotify session to log out from.[/yellow]")
+            Prompt.ask("\nPress Enter to continue...")
+        elif choice == "5":
+            return
+
+
+def configure_spotify_settings():
+    """Configure Spotify API settings."""
+    console.clear()
+    show_banner()
+    console.print(Panel("Configure Spotify API", style="bold yellow"))
+
+    console.print(
+        "1. Go to https://developer.spotify.com/dashboard/\n"
+        "2. Create an App with redirect URI http://127.0.0.1:3000/\n"
+        "3. Copy the Client ID and paste it below\n\n"
+        "You can also set the SPOTIFY_CLIENT_ID environment variable.\n",
+        style="white",
+    )
+
+    current = settings.get("spotify_client_id") or ""
+    console.print(f"Current Client ID: [cyan]{current or 'Not set'}[/cyan]")
+
+    new_id = Prompt.ask("Enter Spotify Client ID (or leave empty to keep current)", default="")
+
+    if new_id.strip():
+        settings["spotify_client_id"] = new_id.strip()
+        console.print("[green]Spotify Client ID updated![/green]")
+    elif not current:
+        console.print("[yellow]No Client ID set. Spotify features will not work until configured.[/yellow]")
+    else:
+        console.print("[yellow]Client ID unchanged.[/yellow]")
+
+    Prompt.ask("\nPress Enter to continue...")
+
+
 def main_menu():
     """Main application menu"""
     while True:
@@ -507,35 +795,40 @@ def main_menu():
         menu_options = [
             (
                 "1",
+                "Download from Spotify (via API)",
+                "Download playlists or liked songs directly from Spotify",
+            ),
+            (
+                "2",
                 "Download using Exportify CSV",
                 "Export your playlist csv here : https://exportify.app/",
             ),
             (
-                "2",
+                "3",
                 "Download using TuneMyMusic CSV",
                 "Export your playlist csv here : https://www.tunemymusic.com/transfer (make sure you export to a file!)",
             ),
             (
-                "3",
+                "4",
                 "Download from URLs File",
                 "Batch download from text file with YouTube URLs one by line.",
             ),
             (
-                "4",
+                "5",
                 "Download from Custom CSV",
                 "Download from CSV with name,artist as headers",
             ),
             (
-                "5",
+                "6",
                 "Download from Single URL",
                 "Download audio from a direct URL ( can be a YT video url or playlist )",
             ),
             (
-                "6",
+                "7",
                 "Settings",
-                "Configure format (MP3/FLAC/M4A), output directory, and cookies",
+                "Configure format (MP3/FLAC/M4A), output directory, and Spotify API",
             ),
-            ("7", "Exit", "Exit the application"),
+            ("8", "Exit", "Exit the application"),
         ]
 
         table = Table(
@@ -552,22 +845,24 @@ def main_menu():
         console.print()
 
         choice = Prompt.ask(
-            "Select an option", choices=[str(i) for i in range(1, 8)], default="1"
+            "Select an option", choices=[str(i) for i in range(1, 9)], default="1"
         )
 
         if choice == "1":
-            process_exportify_csv()
+            spotify_submenu()
         elif choice == "2":
-            process_tunemymusic_csv()
+            process_exportify_csv()
         elif choice == "3":
-            download_from_urls_file()
+            process_tunemymusic_csv()
         elif choice == "4":
-            download_from_custom_csv()
+            download_from_urls_file()
         elif choice == "5":
-            download_single_url()
+            download_from_custom_csv()
         elif choice == "6":
-            configure_settings()
+            download_single_url()
         elif choice == "7":
+            configure_settings()
+        elif choice == "8":
             console.print("\nThank you for using SpotFetch!", style="bold cyan")
             console.print("Bye Bye!!", style="bold yellow")
             sys.exit(0)

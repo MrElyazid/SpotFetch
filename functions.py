@@ -7,7 +7,9 @@ from mutagen.id3 import ID3
 from mutagen.mp4 import MP4
 from mutagen.flac import FLAC
 import csv
+import json
 import re
+import urllib.request
 import typing
 from rich import print
 
@@ -190,49 +192,48 @@ def read_exportify_csv_file(file_path: str) -> list:
         reader = csv.DictReader(csvfile)
         songs_list = [row for row in reader]
 
+    translation_url = "https://raw.githubusercontent.com/watsonbox/exportify/refs/heads/master/src/i18n/locales/en/translation.json"
+    with urllib.request.urlopen(translation_url, timeout=10) as resp:
+        translation = json.load(resp)
+
+    csv_to_key = {}
+
+    def _extract_mapping(d):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                _extract_mapping(v)
+            else:
+                csv_to_key[v] = k
+
+    _extract_mapping(translation.get("track", {}))
+
+    csv_to_key["Track Duration (ms)"] = "track_duration_ms"
+    csv_to_key["Album Genres"] = "genres"
+
+    keys_to_remove = list(csv_to_key.keys())
+
     for song in songs_list:
         try:
-            song["track_name"] = sanitize_string(song["Track Name"])
-            song["artist_names"] = [
-                sanitize_string(artist) for artist in song["Artist Name(s)"].split(",")
-            ]
-            song["album_name"] = sanitize_string(song["Album Name"])
-            song["album_release_date"] = song["Release Date"]
-            song["track_duration_ms"] = (
-                int(song["Duration (ms)"]) if song["Duration (ms)"].isdigit() else 0
-            )
-            song["genres"] = sanitize_string(song["Genres"])
-            keys_to_remove = [
-                "Track Name",
-                "Album Name",
-                "Artist Name(s)",
-                "Release Date",
-                "Explicit",
-                "Popularity",
-                "Genres",
-                "Added By",
-                "Added At",
-                "Energy",
-                "Record Label",
-                "Key",
-                "Liveness",
-                "Loudness",
-                "Valence",
-                "Time Signature",
-                "Instrumentalness",
-                "Speechiness",
-                "Acousticness",
-                "Tempo",
-                "Mode",
-                "Duration (ms)",
-                "Danceability",
-            ]
+            for csv_col, internal_key in csv_to_key.items():
+                if csv_col not in song:
+                    continue
+                if csv_col == "Track Duration (ms)":
+                    song[internal_key] = (
+                        int(song[csv_col]) if song[csv_col].isdigit() else 0
+                    )
+                elif csv_col in ("Artist Name(s)", "Album Artist Name(s)"):
+                    song[internal_key] = [
+                        sanitize_string(a) for a in song[csv_col].split(",")
+                    ]
+                else:
+                    song[internal_key] = sanitize_string(song[csv_col])
 
             for key in keys_to_remove:
-                del song[key]
+                if key in song:
+                    del song[key]
         except Exception as e:
             raise Exception(
-                f"some error occured when handling metadata for song {song['track_name']}, error {e} skipping the song."
+                f"some error occured when handling metadata for song {song.get('track_name', 'unknown')}, error {e} skipping the song."
             )
 
     return songs_list

@@ -7,7 +7,7 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 
 ## What it can do :
 
-- Download Spotify playlists after exporting the playlist as a csv file from [Exportify](https://exportify.app)
+- Download Spotify playlists
 - batch download music from a .txt file with URLs one by line, or using a custom CSV file with headers *name,artist*
 - Direct download from a Youtube url, can be a video or playlist.
 - Search then download a song using its name and artist name.
@@ -19,13 +19,25 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 
 # Installation :
 
-### Requirements :
+### Option 1: Standalone executable (recommended)
+
+Download the latest `SpotFetch.exe` (Windows), `SpotFetch_macos` (macOS), or `SpotFetch_linux` (Linux) from the [Releases page](https://github.com/MrElyazid/SpotFetch/releases/latest).
+
+#### Requirements :
 
 - First make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
-- Make sure you have [Python](https://www.python.org/downloads/) installed too, and is in your system path.
+
+That's it — just run the downloaded file.
+
+### Option 2: Run from source with Python
+
+#### Requirements :
+
+- Make sure you have [Python](https://www.python.org/downloads/) installed and in your system path.
+- Make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
 - If you dont have Git to clone the repo thats fine, you can download it as a zip file and uncompress it, see [here](.github/if_no_git.png).
 
-### setup :
+#### setup :
 
 - Clone this repository ( or just download it as a zip file and uncompress it ):
 
@@ -57,6 +69,16 @@ python3 menu.py
 It is recommended to use a virtual environement since installing requirements globally on your machine is generally bad,
 before running `pip install -r requirements.txt` make sure you [create](https://docs.python.org/3/library/venv.html#creating-virtual-environments) and then [activate](https://docs.python.org/3/library/venv.html#how-venvs-work) a venv, and if on Windows and running powershell you might need to run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` before activating the venv.
 
+
+### Spotify API Setup (for direct Spotify downloads) :
+
+SpotFetch can download playlists and liked songs directly from Spotify.
+A built-in Client ID is provided, so no account setup is needed.
+
+On first use, SpotFetch will open a browser window for you to log in to Spotify and authorize the app.
+Your session is saved for future use (no need to log in again).
+
+To use your own Spotify app instead (optional), set the `SPOTIFY_CLIENT_ID` environment variable.
 
 ## Some details :
 
