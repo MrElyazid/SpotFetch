@@ -12,7 +12,7 @@ import requests
 CONFIG_DIR = os.path.expanduser("~/.config/spotfetch")
 TOKEN_FILE = os.path.join(CONFIG_DIR, "tokens.json")
 
-DEFAULT_CLIENT_ID = "9950ac751e34487dbbe027c4fd7f8e99"
+DEFAULT_CLIENT_ID = "d9739ff737b348928da15234f91cf697"
 
 SCOPES = "playlist-read-private playlist-read-collaborative user-library-read"
 REDIRECT_PORT = 3000

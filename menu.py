@@ -761,10 +761,6 @@ def configure_spotify_settings():
     console.print(Panel("Configure Spotify API", style="bold yellow"))
 
     console.print(
-        "A built-in Client ID is already configured, so Spotify API features work\n"
-        "out of the box. You only need to override it here if you want to use your\n"
-        "own Spotify App (advanced).\n\n"
-        "To use your own:\n"
         "1. Go to https://developer.spotify.com/dashboard/\n"
         "2. Create an App with redirect URI http://127.0.0.1:3000/\n"
         "3. Copy the Client ID and paste it below\n\n"
