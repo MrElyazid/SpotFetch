@@ -508,7 +508,7 @@ def main_menu():
             (
                 "1",
                 "Download using Exportify CSV",
-                "Export your playlist csv here : https://exportify.app/",
+                "Export your playlist csv here : https://exportify.net/",
             ),
             (
                 "2",

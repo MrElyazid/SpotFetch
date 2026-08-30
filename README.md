@@ -7,12 +7,12 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 
 ## What it can do :
 
-- Download Spotify playlists after exporting the playlist as a csv file from [Exportify](https://exportify.app)
+- Download Spotify playlists after exporting the playlist as a csv file from [Exportify](https://exportify.net)
 - batch download music from a .txt file with URLs one by line, or using a custom CSV file with headers *name,artist*
 - Direct download from a Youtube url, can be a video or playlist.
 - Search then download a song using its name and artist name.
 - Audio is downloaded as MP3, M4A, or FLAC.
-- Song cover or thumbnail are always embedded, alongside numerous metadata.
+- Songs are downloaded alongside numerous metdata.
 - You can use a cookie file in case YouTube rate limits your session.
 - Download using either YouTube music or Youtube.
 - You can download from platforms other than Spotify if you convert your playlists as CSVs using services like tunemymusic.com .
@@ -22,7 +22,7 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 ### Requirements :
 
 - First make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
-- Make sure you have [Python](https://www.python.org/downloads/) installed too, and is in your system path.
+- Install [UV](https://docs.astral.sh/uv/getting-started/installation/#__tabbed_1_2).
 - If you dont have Git to clone the repo thats fine, you can download it as a zip file and uncompress it, see [here](.github/if_no_git.png).
 
 ### setup :
@@ -38,45 +38,27 @@ git clone https://github.com/MrElyazid/SpotFetch.git
 ```bash
 cd SpotFetch
 ```
-
-- Install `requirements.txt` ( preferably use a new virtual environement ):
-
-```bash
-pip install -r requirements.txt
-```
-
-- Thats it, now run `menu.py` :
+- setup the project :
 
 ```bash
-python3 menu.py
-# or python menu.py
-# or py menu.py
+uv sync
 ```
 
-### note :
-It is recommended to use a virtual environement since installing requirements globally on your machine is generally bad,
-before running `pip install -r requirements.txt` make sure you [create](https://docs.python.org/3/library/venv.html#creating-virtual-environments) and then [activate](https://docs.python.org/3/library/venv.html#how-venvs-work) a venv, and if on Windows and running powershell you might need to run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` before activating the venv.
-
+- now run `uv run main.py` :
 
 ## Some details :
-
 
 ### I get `track_name error` or errors when parsing the csv :
 
 Make sure the language set in Exportify is English.
-
-### How does the program set the best quality and bitrate ?
-
-First off, YouTube uses adaptive streaming, the best available quality for a video can change depending on variables like the server load, location ... etc, to get the best available quality at the time of the request, the argument `bestaudio` for yt-dlp ensures exactly that, and then comes the transcoding, when converting from the `bestaudio` format ( which is often opus or vorbis in WebM containers ) to `mp3` or `m4a` the argument `prefferedqyality: '0'` is used, this ensures we dont produce a bloated transcode and perform VBR encoding instead of just setting the maximum bitrate which will just result in a large file size for the audio, note that for `flac` this last argument is ignored since the format is lossless.
-
-in short : **the best quality possible is always chosen.**
 
 ### how to use a cookie file ?:
 
 Use the following extensions to get cookies for YouTube depending on your browser : [Chrome](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1), [Firefox](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/).
 
 You can read more about using cookies with yt-dlp [here](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
-Note that you need to have a javascript runtime installed for the cookies to work, [deno](https://deno.com/) is recommended, read more here : https://github.com/yt-dlp/yt-dlp/wiki/EJS 
+Note that you need to have a javascript runtime installed for the cookies to work, [deno](https://deno.com/) is recommended, read more here : https://github.com/yt-dlp/yt-dlp/wiki/EJS
+
 ### Download Platform Selection
 
 - **YouTube Music** (default): Works best for popular songs and if you don't want to download video clip audio.
@@ -104,55 +86,8 @@ name,artist
 
 ### I keep getting 403 Forbidden Error :
 
-If you get `ERROR: unable to download video data: HTTP Error 403: Forbidden` when trying to download, this is probably because yt-dlp needs to be updated, you can run `pip install -r requirements.txt --upgrade` to update it.
+If you get `ERROR: unable to download video data: HTTP Error 403: Forbidden` when trying to download, this is probably because yt-dlp needs to be updated, you can run `uv sync` to update the packages.
 
-Also if using a venv, make sure you activate it before each launch of the app.
-
-## Using SpotFetch on Android :
-
-since SpotFetch is just a python program, you can run it on any machine with python installed, you can run it on Android via [Termux](https://f-droid.org/en/packages/com.termux/) ( you can also find Termux on Google play ), after installation follow these commands :
-
-- Upgrade your system packages :
-
-```bash
-pkg update && pkg upgrade
-```
-Make sure to type Enter whenever needed while upgrading.
-
-
-- Install python, git, ffmpeg:
-
-```bash
-pkg install git python ffmpeg
-```
-
-- Clone this repo :
-
-```bash
-git clone https://github.com/MrElyazid/SpotFetch
-```
-
-- cd into the directory :
-
-```bash
-cd SpotFetch/
-```
-- install the requirements:
-
-```bash
-pip install -r requirements.txt
-```
-
-- Rotate your phone :
-do it so that the terminal UI doesnt look awful :/
-
-- Run `menu.py` :
-
-```bash
-python menu.py
-```
-
-Thats it, after downloading try to locate where Termux stores files on your Android and access your downloaded files there.
 
 ## Contributing :
 
