@@ -7,10 +7,13 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 
 ## What it can do :
 
-- Download Spotify playlists after exporting the playlist as a csv file from [Exportify](https://exportify.net)
+- Download Spotify playlists after exporting the playlist as a csv file from [Exportify](https://exportify.app)
 - batch download music from a .txt file with URLs one by line, or using a custom CSV file with headers *name,artist*
 - Direct download from a Youtube url, can be a video or playlist.
+- Downloads from Youtube urls are tagged from [MusicBrainz](https://musicbrainz.org) (on by default, configurable in settings): the audio is identified, then proper tags and the album cover are embedded.
+- Optional [AcoustID](https://acoustid.org) fingerprinting for more reliable identification: install [fpcalc](https://acoustid.org/chromaprint) and set your free API key (from [acoustid.org/api-key](https://acoustid.org/api-key)) in the settings.
 - Search then download a song using its name and artist name.
+- Optional [lyrics](https://lrclib.net) embedding from lrclib.net (off by default, configurable in settings): synced LRC lyrics are preferred and embedded as USLT (mp3), ©lyr (m4a), or LYRICS (flac).
 - Audio is downloaded as MP3, M4A, or FLAC.
 - Songs are downloaded alongside numerous metdata.
 - You can use a cookie file in case YouTube rate limits your session.
@@ -22,7 +25,7 @@ A simple python program to download Music from various platfroms using yt-dlp ( 
 ### Requirements :
 
 - First make sure you have ffmpeg installed on your machine [Download here](https://ffmpeg.org/download.html).
-- Install [UV](https://docs.astral.sh/uv/getting-started/installation/#__tabbed_1_2).
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/#__tabbed_1_2).
 - If you dont have Git to clone the repo thats fine, you can download it as a zip file and uncompress it, see [here](.github/if_no_git.png).
 
 ### setup :
@@ -47,6 +50,10 @@ uv sync
 - now run `uv run main.py` :
 
 ## Some details :
+
+### Where are my settings saved ?
+
+Settings are persisted automatically in `settings.json` inside your user config directory (e.g. `~/.config/spotfetch/` on Linux). Delete the file to reset to defaults.
 
 ### I get `track_name error` or errors when parsing the csv :
 
@@ -92,3 +99,7 @@ If you get `ERROR: unable to download video data: HTTP Error 403: Forbidden` whe
 ## Contributing :
 
 If you have any enhancement ideas for the program or encountered a bug, you can submit an issue or a PR or start a discussion, happy to help!
+
+## License :
+
+SpotFetch is free software licensed under the [GPL-2.0-or-later](LICENSE). The tag-search matching (lenient MusicBrainz queries + client-side similarity scoring) is adapted from the [MusicBrainz Picard](https://picard.musicbrainz.org) tagger, also GPL-2.0-or-later.

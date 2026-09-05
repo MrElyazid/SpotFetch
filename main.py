@@ -1,6 +1,7 @@
 """This is the main TUI file, core logic and functions is in functions.py"""
 
 import functions
+import config
 import os
 import sys
 from rich.console import Console
@@ -18,8 +19,14 @@ settings = {
     "output_path": ".",
     "cookie_file": None,
     "platform": "ytmusic",
-    "tolerance": 2
+    "tolerance": 2,
+    "tag_youtube": True,   # MusicBrainz-tag downloads from YouTube sources
+    "tag_csv": False,      # MusicBrainz re-tag for exportify downloads (not advised, tags from the csv get embeded anyway)
+    "acoustid_key": "",    # AcoustID API key; empty = tag search only, no fingerprinting
+    "lyrics": False,       # fetch lyrics from lrclib.net and embed them
 }
+
+settings.update(config.load_settings())  # persisted values win over defaults
 
 art = r"""
                         ____              _   _____    _       _     
@@ -67,6 +74,18 @@ def show_current_settings():
         ("\n"),
         ("Duration Tolerance: ", "white"),
         (f"{settings['tolerance']}min", "cyan"),
+        ("\n"),
+        ("Tag YouTube downloads: ", "white"),
+        ("On" if settings["tag_youtube"] else "Off", "cyan"),
+        ("\n"),
+        ("Tag Exportify downloads: ", "white"),
+        ("On" if settings["tag_csv"] else "Off", "cyan"),
+        ("\n"),
+        ("AcoustID Fingerprinting: ", "white"),
+        ("Enabled" if settings["acoustid_key"] else "Disabled (tag search only)", "cyan"),
+        ("\n"),
+        ("Lyrics: ", "white"),
+        ("On" if settings["lyrics"] else "Off", "cyan"),
     )
 
     panel = Panel(
@@ -96,8 +115,28 @@ def configure_settings():
             "Set duration tolerance",
             f"Currently tolerance={settings['tolerance']}min",
         ),
-        ("6", "Reset to Defaults", "Reset all settings"),
-        ("7", "Back to Main Menu", "Return to main menu"),
+        (
+            "6",
+            "Toggle YouTube download tagging",
+            f"Currently: {'On' if settings['tag_youtube'] else 'Off'} (default On)",
+        ),
+        (
+            "7",
+            "Toggle Exportify download tagging",
+            f"Currently: {'On' if settings['tag_csv'] else 'Off'} (not advised)",
+        ),
+        (
+            "8",
+            "Configure AcoustID fingerprinting",
+            f"Currently: {'Enabled' if settings['acoustid_key'] else 'Disabled'}",
+        ),
+        (
+            "9",
+            "Toggle lyrics fetching",
+            f"Currently: {'On' if settings['lyrics'] else 'Off'} (from lrclib.net)",
+        ),
+        ("10", "Reset to Defaults", "Reset all settings"),
+        ("11", "Back to Main Menu", "Return to main menu"),
     ]
 
     table = Table(title="Settings Menu", box=box.ROUNDED, title_style="bold cyan")
@@ -113,8 +152,8 @@ def configure_settings():
 
     choice = Prompt.ask(
         "Select setting to configure",
-        choices=["1", "2", "3", "4", "5", "6", "7"],
-        default="7",
+        choices=[str(i) for i in range(1, 12)],
+        default="11",
     )
 
     if choice == "1":
@@ -128,11 +167,20 @@ def configure_settings():
     elif choice == "5":
         set_duration_tolerance()
     elif choice == "6":
-        reset_settings()
+        set_tag_youtube()
     elif choice == "7":
+        set_tag_csv()
+    elif choice == "8":
+        set_acoustid_fingerprinting()
+    elif choice == "9":
+        set_lyrics()
+    elif choice == "10":
+        reset_settings()
+    elif choice == "11":
         return
 
-    if choice != "7":
+    if choice != "11":
+        config.save_settings(settings)
         console.print()
         show_current_settings()
         if Confirm.ask("\nConfigure another setting?", default=False):
@@ -154,6 +202,85 @@ def set_duration_tolerance():
 
     console.print(f"Duration tolerance set to: {settings['tolerance']}min")
 
+
+def set_tag_youtube():
+    """Toggle MusicBrainz tagging for YouTube-sourced downloads"""
+    console.print(Panel("Tag YouTube Downloads", style="bold yellow"))
+    console.print(
+        Text(
+            "Downloads from URLs get junk YouTube tags; MusicBrainz tagging identifies the "
+            "audio and embeds proper tags + album cover",
+            style="italic white",
+        )
+    )
+    settings["tag_youtube"] = Confirm.ask(
+        "Tag YouTube downloads with MusicBrainz?", default=settings["tag_youtube"]
+    )
+    console.print(
+        f"YouTube tagging: {'On' if settings['tag_youtube'] else 'Off'}", style="green"
+    )
+
+
+def set_tag_csv():
+    """Toggle MusicBrainz re-tagging for exportify downloads"""
+    console.print(Panel("Tag Exportify Downloads", style="bold yellow"))
+    console.print(
+        Text(
+            "Not advised: exportify downloads already carry complete spotify metadata "
+            "and the real album cover",
+            style="italic white",
+        )
+    )
+    settings["tag_csv"] = Confirm.ask(
+        "Re-tag exportify downloads with MusicBrainz?", default=settings["tag_csv"]
+    )
+    console.print(
+        f"Exportify tagging: {'On' if settings['tag_csv'] else 'Off'}", style="green"
+    )
+
+
+def set_acoustid_fingerprinting():
+    """Configure AcoustID fingerprinting (API key) for more reliable tagging"""
+    console.print(Panel("AcoustID Fingerprinting", style="bold yellow"))
+    console.print(
+        Text(
+            "Fingerprinting identifies audio exactly instead of searching by tags, but needs "
+            "the fpcalc binary (chromaprint package) and a free API key from acoustid.org/api-key",
+            style="italic white",
+        )
+    )
+    enabled = Confirm.ask(
+        "Use AcoustID fingerprinting for tagging?",
+        default=bool(settings["acoustid_key"]),
+    )
+    if enabled:
+        key = Prompt.ask("Enter your AcoustID API key", default=settings["acoustid_key"])
+        if key:
+            settings["acoustid_key"] = key
+            console.print("AcoustID fingerprinting: Enabled", style="green")
+        else:
+            settings["acoustid_key"] = ""
+            console.print("No key given, fingerprinting disabled", style="yellow")
+    else:
+        settings["acoustid_key"] = ""
+        console.print("AcoustID fingerprinting: Disabled", style="yellow")
+
+
+
+def set_lyrics():
+    """Toggle lyrics fetching from lrclib.net"""
+    console.print(Panel("Lyrics Fetching", style="bold yellow"))
+    console.print(
+        Text(
+            "Fetch lyrics from lrclib.net and embed them (LRC synced format preferred). "
+            "Synced lyrics tags go in USLT (mp3), ©lyr (m4a), LYRICS (flac).",
+            style="italic white",
+        )
+    )
+    settings["lyrics"] = Confirm.ask(
+        "Fetch and embed lyrics?", default=settings["lyrics"]
+    )
+    console.print(f"Lyrics fetching: {'On' if settings['lyrics'] else 'Off'}", style="green")
 
 
 def set_audio_format():
@@ -263,6 +390,10 @@ def reset_settings():
     settings["cookie_file"] = None
     settings["platform"] = "ytmusic"
     settings["tolerance"] = 2
+    settings["tag_youtube"] = True
+    settings["tag_csv"] = False
+    settings["acoustid_key"] = ""
+    settings["lyrics"] = False
     console.print("All settings reset to defaults", style="green")
 
 
@@ -279,7 +410,8 @@ def download_single_url():
     console.print("Downloading...", style="yellow")
     try:
         functions.download_from_url(
-            url, settings["format"], settings["output_path"], settings["cookie_file"]
+            url, settings["format"], settings["output_path"], settings["cookie_file"],
+            settings["tag_youtube"], settings["acoustid_key"], settings["lyrics"],
         )
         console.print("Successfully downloaded!", style="green bold")
     except Exception as e:
@@ -310,6 +442,9 @@ def download_from_urls_file():
             settings["format"],
             settings["output_path"],
             settings["cookie_file"],
+            settings["tag_youtube"],
+            settings["acoustid_key"],
+            settings["lyrics"],
         )
         console.print("Successfully Downloaded all URLs!", style="green bold")
     except Exception as e:
@@ -475,7 +610,10 @@ def download_spotify_songs_from_list(songs, platform):
                 settings["output_path"],
                 settings["cookie_file"],
                 platform,
-                settings["tolerance"]
+                settings["tolerance"],
+                settings["tag_csv"],
+                settings["acoustid_key"],
+                settings["lyrics"],
             )
             console.print(
                     f"[SUCCESS] Successfully downloaded: {track_name}", style="green"
@@ -508,7 +646,7 @@ def main_menu():
             (
                 "1",
                 "Download using Exportify CSV",
-                "Export your playlist csv here : https://exportify.net/",
+                "Export your playlist csv here : https://exportify.app/",
             ),
             (
                 "2",

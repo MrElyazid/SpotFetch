@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<title>SpotFetch</title>
+</head>
+<body>
+<main class="container">
+  <h1>SpotFetch</h1>
+  <p>Download a song from a URL, saved on this machine.</p>
+  <article>
+    <form id="f">
+      <label for="url">URL</label>
+      <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+      <label for="format">Format</label>
+      <select id="format" name="format">
+        <option value="mp3">MP3</option>
+        <option value="m4a">M4A</option>
+        <option value="flac">FLAC</option>
+      </select>
+      <fieldset>
+        <legend>Options</legend>
+        <label><input type="checkbox" id="tag" name="tag" checked> Tag with MusicBrainz</label>
+        <label><input type="checkbox" id="lyrics" name="lyrics"> Fetch lyrics</label>
+      </fieldset>
+      <button type="submit">Download</button>
+    </form>
+  </article>
+  <pre id="status" aria-live="polite"></pre>
+</main>
+<script>
+const statusEl = document.getElementById('status');
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  statusEl.textContent = 'starting...';
+  const r = await fetch('/download', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      url: document.getElementById('url').value,
+      format: document.getElementById('format').value,
+      tag: document.getElementById('tag').checked,
+      lyrics: document.getElementById('lyrics').checked,
+    }),
+  });
+  const d = await r.json();
+  if (!r.ok) { statusEl.textContent = 'error: ' + (d.error || r.status); return; }
+  poll(d.job_id);
+});
+async function poll(id) {
+  while (true) {
+    await new Promise(res => setTimeout(res, 2000));
+    const r = await fetch('/jobs/' + id);
+    const d = await r.json();
+    if (d.status === 'done') { statusEl.textContent = 'done:\n' + d.files.join('\n'); return; }
+    if (d.status === 'error') { statusEl.textContent = 'error: ' + d.error; return; }
+    statusEl.textContent = 'downloading...';
+  }
+}
+</script>
+</body>
+</html>
