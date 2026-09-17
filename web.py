@@ -6,8 +6,8 @@ One download runs at a time; each is a background job the page polls.
 import threading
 import uuid
 
-import config
-import functions
+import files.config as config
+import files.functions as functions
 from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)

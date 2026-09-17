@@ -1,7 +1,7 @@
 """This is the main TUI file, core logic and functions is in functions.py"""
 
-import functions
-import config
+import files.functions as functions
+import files.config as config
 import os
 import sys
 from rich.console import Console

@@ -2,7 +2,7 @@ import yt_dlp
 import os
 import shutil
 import requests
-import tagger
+from . import tagger
 from mutagen.mp3 import MP3
 from mutagen.id3._frames import APIC, TALB, TPE1, TPE2, TDRC, TIT2, TRCK, USLT
 from mutagen.id3 import ID3
@@ -129,7 +129,7 @@ def read_tunemymusic_csv_file(file_path: str) -> list:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"The file {file_path} doesnt exist.")
 
-    with open(file_path, mode="r", encoding="utf-8") as csvfile:
+    with open(file_path, mode="r", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         songs_list = [row for row in reader]
 

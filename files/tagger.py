@@ -22,7 +22,7 @@ import time
 import unicodedata
 
 import requests
-from lyrics import fetch as fetch_lyrics
+from .lyrics import fetch as fetch_lyrics
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import APIC, ID3, TALB, TDRC, TIT2, TPE1, TPE2, TRCK, TXXX, USLT
 from mutagen.mp3 import MP3
