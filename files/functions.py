@@ -3,6 +3,7 @@ import os
 import shutil
 import requests
 from . import tagger
+from .lyrics import fetch as fetch_lyrics
 from mutagen.mp3 import MP3
 from mutagen.id3._frames import APIC, TALB, TPE1, TPE2, TDRC, TIT2, TRCK, USLT
 from mutagen.id3 import ID3
@@ -436,7 +437,7 @@ def download_spotify_song(
         print(f"File {final_audio_file_path} already exists. Skipping download.")
         return
 
-    search_query = f"{track_name} by {artist_names}"
+    search_query = f"{track_name} by {artist_names_str}"
 
     if platform == "ytmusic":
         search_input = (
@@ -492,7 +493,7 @@ def download_spotify_song(
     # embedding metadata and album image
     if downloaded_file_path and os.path.exists(downloaded_file_path):
         cover = download_album_cover(metadata.get("album_image_url"), track_name)
-        lyrics_text = lyrics.fetch(
+        lyrics_text = fetch_lyrics(
             artist=(metadata.get("artist_names") or [""])[0],
             track=metadata["track_name"],
             album=metadata.get("album_name"),
