@@ -304,7 +304,7 @@ def embed_spotify_metadata_mutagen(
             if cover:
                 audio.tags.delall("APIC")  # drop the yt-dlp thumbnail
                 audio.tags.add(
-                    APIC(encoding=3, mime="image/jpeg", type=3, desc="Cover", data=cover)
+                    APIC(encoding=3, mime=tagger.cover_mime(cover), type=3, desc="Cover", data=cover)
                 )
 
             audio.save()
@@ -335,7 +335,8 @@ def embed_spotify_metadata_mutagen(
             if lyrics:
                 audio.tags["\xa9lyr"] = [lyrics]
             if cover:
-                audio.tags["covr"] = [MP4Cover(cover, imageformat=MP4Cover.FORMAT_JPEG)]
+                imageformat = MP4Cover.FORMAT_PNG if tagger.cover_mime(cover) == "image/png" else MP4Cover.FORMAT_JPEG
+                audio.tags["covr"] = [MP4Cover(cover, imageformat=imageformat)]
 
             audio.save()
 
@@ -372,7 +373,7 @@ def embed_spotify_metadata_mutagen(
                 audio.clear_pictures()  # drop the yt-dlp thumbnail
                 picture = Picture()
                 picture.type = 3
-                picture.mime = "image/jpeg"
+                picture.mime = tagger.cover_mime(cover)
                 picture.data = cover
                 audio.add_picture(picture)
             audio.save()
