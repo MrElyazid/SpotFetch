@@ -209,10 +209,8 @@ EXPORTIFY_REQUIRED_COLUMNS = {
     "Track Name",
     "Artist Name(s)",
     "Album Name",
-    "Album Artist Name(s)",
-    "Album Release Date",
-    "Album Image URL",
-    "Track Duration (ms)",
+    "Release Date",
+    "Duration (ms)",
 }
 
 
@@ -245,14 +243,14 @@ def read_exportify_csv_file(file_path: str) -> list:
                     "album_name": sanitize_string(row["Album Name"]),
                     "album_artist_names": [
                         sanitize_string(artist).strip()
-                        for artist in row["Album Artist Name(s)"].split(",")
+                        for artist in row["Artist Name(s)"].split(",")
                         if artist
                     ],
-                    "album_release_date": row["Album Release Date"],
-                    "album_image_url": row["Album Image URL"],
+                    "album_release_date": row["Release Date"],
+                    "album_image_url": None,
                     "track_duration_ms": (
-                        int(row["Track Duration (ms)"])
-                        if row["Track Duration (ms)"].isdigit()
+                        int(row["Duration (ms)"])
+                        if row["Duration (ms)"].isdigit()
                         else 0
                     ),
                     "isrc": row.get("ISRC", ""),
@@ -388,7 +386,7 @@ def embed_spotify_metadata_mutagen(
 def download_spotify_song(
     format: typing.Literal["mp3", "flac", "m4a"],
     metadata,
-    output_path=".",
+    output_path="./mp3",
     cookiefile=None,
     platform="youtube",
     tolerance=2,
